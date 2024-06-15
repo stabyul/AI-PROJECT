@@ -42,11 +42,10 @@ class Encoder(nn.Module):
         self.training = True
         
     def forward(self, x):
-        h_       = self.ReLU(self.FC_input(x))
-        h_       = self.ReLU(self.FC_input2(h_))
-        mean     = self.FC_mean(h_)
-        log_var  = self.FC_var(h_)                     # encoder produces mean and log of variance 
-                                                       #             (i.e., parateters of simple tractable normal distribution "q"
+        h_1      = self.ReLU(self.FC_input(x))
+        h_1      = self.ReLU(self.FC_input2(h_1))
+        mean     = self.FC_mean(h_1)
+        log_var  = self.FC_var(h_1)                     
         
         return mean, log_var
 class Decoder(nn.Module):
@@ -99,7 +98,6 @@ def loss_function(x, x_hat, mean, log_var):
 
 
 optimizer = Adam(model.parameters(), lr=lr)
-print("Start training VAE...")
 model.train()
 
 for epoch in range(epochs):
@@ -118,9 +116,8 @@ for epoch in range(epochs):
         loss.backward()
         optimizer.step()
         
-    print("\tEpoch", epoch + 1, "complete!", "\tAverage Loss: ", overall_loss / (batch_idx*batch_size))
+    print("\tEpoch", epoch + 1, "\tAverage Loss: ", overall_loss / (batch_idx*batch_size))
     
-print("Finish!!")
 
 model.eval()
 

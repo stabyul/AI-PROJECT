@@ -16,7 +16,7 @@ lr = 0.0001
 image_size = 28
 image_channels = 1
 
-epochs = 2
+epochs = 100
 mnist_transform = transforms.Compose([
         transforms.ToTensor(),
 ])
@@ -68,7 +68,7 @@ discriminator = Discriminator()
      
 
 # Define loss and optimizers
-criterion = nn.BCELoss()
+adversarial_loss = nn.BCELoss()
 optimizer_g = Adam(generator.parameters(), lr=lr)
 optimizer_d = Adam(discriminator.parameters(), lr=lr)
 
@@ -82,7 +82,7 @@ for epoch in range(epochs):
         optimizer_d.zero_grad()
         label_real = torch.ones(batch_size, 1)
         output_real = discriminator(real_images).view(-1, 1)
-        loss_real = criterion(output_real, label_real)
+        loss_real = adversarial_loss(output_real, label_real)
         loss_real.backward()
 
         # Train discriminator with fake images
@@ -90,21 +90,21 @@ for epoch in range(epochs):
         fake_images = generator(noise)
         label_fake = torch.zeros(batch_size, 1)
         output_fake = discriminator(fake_images.detach()).view(-1, 1)
-        loss_fake = criterion(output_fake, label_fake)
+        loss_fake = adversarial_loss(output_fake, label_fake)
         loss_fake.backward()
         optimizer_d.step()
 
         # Train generator
         optimizer_g.zero_grad()
         output = discriminator(fake_images).view(-1, 1)
-        loss_g = criterion(output, label_real)
+        loss_g = adversarial_loss(output, label_real)
         loss_g.backward()
         optimizer_g.step()
 
         if (i + 1) % 100 == 0:
             print(f'Epoch [{epoch+1}/{epochs}], Batch [{i+1}/{len(train_loader)}], '
-                  f'D_real: {output_real.mean():.4f}, D_fake: {output_fake.mean():.4f}, '
-                  f'Loss_D: {loss_real.item() + loss_fake.item():.4f}, Loss_G: {loss_g.item():.4f}')
+                  f'Discri_real: {output_real.mean():.4f}, Discri_fake: {output_fake.mean():.4f}, '
+                  f'd_loss: {loss_real.item() + loss_fake.item():.4f}, g_loss: {loss_g.item():.4f}')
             # Generate and save sample images at the end of each epoch
     with torch.no_grad():
         fake_samples = generator(torch.randn(8, latent_dim, 1, 1))
